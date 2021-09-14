@@ -1,7 +1,7 @@
 keras==2.4.3
 imutils==0.5.4
-numpy==1.19.5
-opencv-python==4.5.1
+numpy==1.17.3
+opencv-python==4.5.3.56
 numpy==1.19.5
 renderer==1.0.3
 requests==2.26.0
