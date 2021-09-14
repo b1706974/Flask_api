@@ -10,12 +10,8 @@ tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.0
 tensorflow==2.6.0
 tensorflow-estimator==2.6.0
-base64
-PIL
-glob
-os
-shutil
-flask
+pillow==8.2.0
+flask==1.1.2
 gunicorn
 
 
