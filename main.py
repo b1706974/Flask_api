@@ -21,7 +21,6 @@ from pprint import pprint
 app = Flask(__name__)
 
 
-
 def decor_base64(anh_base64):
     try:
         anh_base64 = np.fromstring(base64.b64decode(anh_base64), dtype=np.uint8)
@@ -72,7 +71,7 @@ def get_process():
         f.write(imgdata)
     aug_data()
     new_data = {}
-    for name in glob.glob("C:/Users/MyPC/Desktop/flas/*.zip"): #base64Zip
+    for name in glob.glob("C:/Users/MyPC/Desktop/flas/*.zip"):  # base64Zip
         with open(name, "rb") as image_file:
             result = base64.b64encode(image_file.read()).decode()
     print(request.json)
