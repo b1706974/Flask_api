@@ -1,7 +1,7 @@
 keras==2.4.3
 imutils==0.5.4
 numpy==1.19.5
-opencv-python==4.5.1.
+opencv-python==4.5.1
 numpy==1.19.5
 renderer==1.0.3
 requests==2.26.0
@@ -12,5 +12,11 @@ tensorboard-plugin-wit==1.8.0
 tensorflow==2.6.0
 tensorflow-estimator==2.6.0
 skimage
+base64
+PIL
+glob
+os
+shutil
+flask
 
 
