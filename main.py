@@ -1,6 +1,5 @@
 import glob
 import os
-import numpy as np
 import pymongo
 import requests
 from flask import Flask, jsonify, flash, url_for, render_template, send_from_directory
