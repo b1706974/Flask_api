@@ -16,14 +16,10 @@ from keras_preprocessing.image import ImageDataGenerator
 from werkzeug.utils import redirect, secure_filename
 import shutil
 import requests
-from pymongo import MongoClient
 from pprint import pprint
 
 app = Flask(__name__)
 
-client = pymongo.MongoClient("mongodb+srv://Buudao123:Buudao9699@cluster0.1y49z.mongodb.net/API?retryWrites=true&w=majority")
-db = client.API
-image = db.image
 
 
 def decor_base64(anh_base64):
@@ -74,13 +70,6 @@ def get_process():
     filename = './templates/1.jpg'
     with open(filename, 'wb') as f:
         f.write(imgdata)
-    db.image.replace_one(
-        {"Name": 'done'},
-        {
-            "Name": 'done',
-            "facebase64": str(facebase64),
-            }
-    )
     aug_data()
     new_data = {}
     for name in glob.glob("C:/Users/MyPC/Desktop/flas/*.zip"): #base64Zip
@@ -95,4 +84,4 @@ def get_process():
 ###########################################################################
 # startbackend
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port='6868')
+    app.run(debug=True)
