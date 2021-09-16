@@ -122,6 +122,7 @@ def get_process():
     })
     return response
 
+
 ###########################################################################
 @app.route('/data', methods=['GET', 'POST'])
 @cross_origin(origin='*')
@@ -147,7 +148,8 @@ def data_aug():
         'message': str(result),
     }
     )
-    print(response)
+    return response
+
 
 ###########################################################################
 @app.route('/', methods=['GET', 'POST'])
