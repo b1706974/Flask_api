@@ -1,22 +1,11 @@
 keras==2.4.3
 imutils==0.5.4
-numpy==1.17.3
 opencv-python==4.5.3.56
 renderer==1.0.3
 requests==2.26.0
 scikit-image==0.18.1
-tensorboard==2.6.0
-tensorboard-data-server==0.6.1
-tensorboard-plugin-wit==1.8.0
-tensorflow==2.6.0
-tensorflow-estimator==2.6.0
-skimage
-base64
-PIL
-glob
-os
-shutil
-flask
+pillow==8.2.0
+flask==1.1.2
 gunicorn
-
+Keras-Preprocessing==1.1.2
 
