@@ -1,5 +1,6 @@
 import glob
 import os
+import numpy as np
 import pymongo
 import requests
 from flask import Flask, jsonify, flash, url_for, render_template, send_from_directory
@@ -58,13 +59,6 @@ def detect_face(face):
                     count += 1
                     frame = face[startY:endY, startX:endX]
                     cv2.imwrite('faces/' + str(i) + '_' + file, frame)
-    # zip tat ca anh trong file lai
-    shutil.make_archive("data", 'zip', "./faces")
-    #####Xoa het anh trong may#####
-    mypath = "C:/Users/MyPC/Desktop/flask_api/faces"
-    for root, dirs, files in os.walk(mypath):
-        for file in files:
-            os.remove(os.path.join(root, file))
 
 
 def decor_base64(anh_base64):
@@ -107,6 +101,13 @@ def aug_data():
             os.remove(os.path.join(root, file))
 
 
+def delete_file():
+    mypath = "C:/Users/MyPC/Desktop/flask_api/faces"
+    for root, dirs, files in os.walk(mypath):
+        for file in files:
+            os.remove(os.path.join(root, file))
+
+
 ###########################################################################
 @app.route('/face', methods=['GET', 'POST'])
 @cross_origin(origin='*')
@@ -114,12 +115,13 @@ def get_process():
     facebase64 = request.form.get('facebase64')
     face = chuyen_base64_sang_anh(facebase64)
     detect_face(face)
-    for name in glob.glob("C:/Users/MyPC/Desktop/flask_api/*.zip"):  # base64Zip
+    for name in glob.glob("C:/Users/MyPC/Desktop/flask_api/faces/*.jpg"):  # base64Zip
         with open(name, "rb") as image_file:
             resultt = base64.b64encode(image_file.read()).decode()
     response = jsonify({
         'message': str(resultt)
     })
+    delete_file()
     return response
 
 
@@ -158,7 +160,6 @@ def main():
     return render_template('hello.html')
 
 
-###########################################################################
 # startbackend
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port='6868', debug=True)
