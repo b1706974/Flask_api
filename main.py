@@ -1,7 +1,11 @@
 import glob
 import os
+import zipfile
+from datetime import datetime
+from pathlib import Path
+
 import numpy as np
-import pymongo
+# import pymongo
 import requests
 from flask import Flask, jsonify, flash, url_for, render_template, send_from_directory
 from flask import request
@@ -24,29 +28,31 @@ caffemodel_path = os.path.join('res10_300x300_ssd_iter_140000.caffemodel')
 # Read the model
 model = cv2.dnn.readNetFromCaffe(prototxt_path, caffemodel_path)
 url = 'http://a294-14-240-28-81.ngrok.io/data'
-client = pymongo.MongoClient(
-    "mongodb+srv://Buudao123:Buudao9699@cluster0.1y49z.mongodb.net/API?retryWrites=true&w=majority")
-db = client.API
-image = db.image
 
 
-def chuyen_base64_sang_anh(anh_base64):
-    try:
+# client = pymongo.MongoClient(
+#   "mongodb+srv://Buudao123:Buudao9699@cluster0.1y49z.mongodb.net/API?retryWrites=true&w=majority")
+# db = client.API
+# image = db.image
+
+
+def chuyen_base64_sang_anh(anh_base64) :
+    try :
         anh_base64 = np.fromstring(base64.b64decode(anh_base64), dtype=np.uint8)
         anh_base64 = cv2.imdecode(anh_base64, cv2.IMREAD_ANYCOLOR)
-    except:
+    except :
         return None
     return anh_base64
 
 
-def detect_face(face):
+def detect_face():
     count = 0
-    for file in os.listdir('images'):
+    for file in os.listdir('images_face'):
         file_name, file_extension = os.path.splitext(file)
         if file_extension in ['.png', '.jpg']:
-            image = cv2.imread('images/' + file)
-            (h, w) = face.shape[:2]
-            blob = cv2.dnn.blobFromImage(cv2.resize(face, (400, 400)), 1.0, (300, 300), (104.0, 177.0, 123.0))
+            image = cv2.imread('images_face/' + file)
+            (h, w) = image.shape[:2]
+            blob = cv2.dnn.blobFromImage(cv2.resize(image, (400, 400)), 1.0, (300, 300), (104.0, 177.0, 123.0))
             model.setInput(blob)
             detections = model.forward()
             # Identify each face
@@ -57,54 +63,55 @@ def detect_face(face):
                 # If confidence > 0.5, save it as a separate file
                 if confidence > 0.5:
                     count += 1
-                    frame = face[startY:endY, startX:endX]
+                    frame = image[startY:endY, startX:endX]
                     cv2.imwrite('faces/' + str(i) + '_' + file, frame)
-
-
-def decor_base64(anh_base64):
-    try:
-        anh_base64 = np.fromstring(base64.b64decode(anh_base64), dtype=np.uint8)
-        anh_base64 = cv2.imdecode(anh_base64, cv2.IMREAD_ANYCOLOR)
-    except:
-        return None
-    return anh_base64
+        shutil.make_archive("data_face", 'zip', "./faces/")
 
 
 def aug_data():
-    datagen = ImageDataGenerator(
-        rotation_range=45,  # 0-45
-        width_shift_range=0.2,  # % shift
-        height_shift_range=0.2,
-        shear_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True,
-        fill_mode='nearest')  # nearest, constant, reflect, wrap
+    count = 0
+    for file in os.listdir('images') :
+        file_name, file_extension = os.path.splitext(file)
+        if file_extension in ['.png', '.jpg'] :
+            # fill_mode='constant')  # nearest, constant, reflect, wrap
+            datagen = ImageDataGenerator(
+                rotation_range=45, brightness_range=[0.3, 1.5],  # 0-45
+                width_shift_range=0.1,  # % shift
+                height_shift_range=0.1,
+                shear_range=0.2,
+                zoom_range=0.2, channel_shift_range=0.5,
+                horizontal_flip=True, vertical_flip=False,
+                fill_mode='constant')  # nearest, constant, reflect, wrap
 
-    x = io.imread('./templates/1.jpg')  # shape (256, 256, 3)
+            x = io.imread('images/' + file)  # shape (256, 256, 3)
 
-    x = x.reshape((1,) + x.shape)  # shape (1, 256, 256, 3)
+            x = x.reshape((1,) + x.shape)  # shape (1, 256, 256, 3)
 
-    i = 0
-    for batch in datagen.flow(x, batch_size=16,
-                              save_to_dir='augmented',
-                              save_prefix='aug',
-                              save_format='jpg'):
-        i += 1
-        if i > 20:
-            break
-    # zip tat ca anh trong file lai
+            i = 0
+        for batch in datagen.flow(x, batch_size=10,
+                                  save_to_dir='augmented',
+                                  save_prefix='aug',
+                                  save_format='png') :
+            i += 1
+            if i > 20 :
+                break
+    src_path = 'C:/Users/MyPC/Desktop/flask_api/images'
+    trg_path = 'C:/Users/MyPC/Desktop/flask_api/augmented'
+
+    for src_file in Path(src_path).glob('*.jpg*') :
+        shutil.move(os.path.join(src_path, src_file), trg_path)
     shutil.make_archive("data", 'zip', "./augmented")
     #####Xoa het anh trong may#####
     mypath = "C:/Users/MyPC/Desktop/flask_api/augmented"
-    for root, dirs, files in os.walk(mypath):
-        for file in files:
+    for root, dirs, files in os.walk(mypath) :
+        for file in files :
             os.remove(os.path.join(root, file))
 
 
-def delete_file():
+def delete_file() :
     mypath = "C:/Users/MyPC/Desktop/flask_api/faces"
-    for root, dirs, files in os.walk(mypath):
-        for file in files:
+    for root, dirs, files in os.walk(mypath) :
+        for file in files :
             os.remove(os.path.join(root, file))
 
 
@@ -113,9 +120,14 @@ def delete_file():
 @cross_origin(origin='*')
 def get_process():
     facebase64 = request.form.get('facebase64')
-    face = chuyen_base64_sang_anh(facebase64)
-    detect_face(face)
-    for name in glob.glob("C:/Users/MyPC/Desktop/flask_api/faces/*.jpg"):  # base64Zip
+    with open('output_file.zip', 'wb') as result:
+        result.write(base64.b64decode(facebase64))
+    zip_ref = zipfile.ZipFile("output_file.zip", 'r')
+    zip_ref.extractall("images_face")
+    zip_ref.close()
+
+    detect_face()
+    for name in glob.glob("C:/Users/MyPC/Desktop/flask_api/data_face.zip"):  # base64Zip
         with open(name, "rb") as image_file:
             resultt = base64.b64encode(image_file.read()).decode()
     response = jsonify({
@@ -128,26 +140,26 @@ def get_process():
 ###########################################################################
 @app.route('/data', methods=['GET', 'POST'])
 @cross_origin(origin='*')
-def data_aug():
+def data_aug() :
     facebase64 = request.form.get('facebase64')
     imgdata = base64.b64decode(facebase64)
-    filename = './templates/1.jpg'
-    with open(filename, 'wb') as f:
+    filename = './images/1.jpg'
+    with open(filename, 'wb') as f :
         f.write(imgdata)
-    db.image.replace_one(
-        {"Name": 'done'},
-        {
-            "Name": 'done',
-            "facebase64": str(facebase64),
-        }
-    )
+    # db.image.replace_one(
+    #   {"Name": 'done'},
+    #  {
+    #     "Name": 'done',
+    #    "facebase64": str(facebase64),
+    # }
+    # )
     aug_data()
     new_data = {}
     for name in glob.glob("C:/Users/MyPC/Desktop/flask_api/*.zip"):  # base64Zip
-        with open(name, "rb") as image_file:
+        with open(name, "rb") as image_file :
             result = base64.b64encode(image_file.read()).decode()
     response = jsonify({
-        'message': str(result),
+        'message' : str(result),
     }
     )
     return response
@@ -156,10 +168,10 @@ def data_aug():
 ###########################################################################
 @app.route('/', methods=['GET', 'POST'])
 @cross_origin(origin='*')
-def main():
+def main() :
     return render_template('hello.html')
 
 
 # startbackend
-if __name__ == '__main__':
+if __name__ == '__main__' :
     app.run(host='127.0.0.1', port='6868', debug=True)
