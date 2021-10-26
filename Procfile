@@ -1,1 +1,1 @@
-web: gunicorn scr.main:app --log file=-
+web: uvicorn scr.main:app --host=0.0.0.0 --port=${-5000}
