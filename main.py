@@ -95,21 +95,21 @@ def aug_data():
             i += 1
             if i > 20 :
                 break
-    src_path = 'C:/Users/MyPC/Desktop/flask_api/images'
-    trg_path = 'C:/Users/MyPC/Desktop/flask_api/augmented'
+    src_path = '/images'
+    trg_path = '/augmented'
 
     for src_file in Path(src_path).glob('*.jpg*') :
         shutil.move(os.path.join(src_path, src_file), trg_path)
     shutil.make_archive("data", 'zip', "./augmented")
     #####Xoa het anh trong may#####
-    mypath = "C:/Users/MyPC/Desktop/flask_api/augmented"
+    mypath = "./augmented"
     for root, dirs, files in os.walk(mypath) :
         for file in files :
             os.remove(os.path.join(root, file))
 
 
 def delete_file() :
-    mypath = "C:/Users/MyPC/Desktop/flask_api/faces"
+    mypath = "./faces"
     for root, dirs, files in os.walk(mypath) :
         for file in files :
             os.remove(os.path.join(root, file))
@@ -127,7 +127,7 @@ def get_process():
     zip_ref.close()
 
     detect_face()
-    for name in glob.glob("C:/Users/MyPC/Desktop/flask_api/data_face.zip"):  # base64Zip
+    for name in glob.glob("data_face.zip"):  # base64Zip
         with open(name, "rb") as image_file:
             resultt = base64.b64encode(image_file.read()).decode()
     response = jsonify({
@@ -155,7 +155,7 @@ def data_aug() :
     # )
     aug_data()
     new_data = {}
-    for name in glob.glob("C:/Users/MyPC/Desktop/flask_api/*.zip"):  # base64Zip
+    for name in glob.glob("data.zip"):  # base64Zip
         with open(name, "rb") as image_file :
             result = base64.b64encode(image_file.read()).decode()
     response = jsonify({
@@ -169,8 +169,7 @@ def data_aug() :
 @app.route('/', methods=['GET', 'POST'])
 @cross_origin(origin='*')
 def main() :
-    return render_template('hello.html')
-
+    return render_template('index.html')
 
 # startbackend
 if __name__ == '__main__' :
