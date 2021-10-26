@@ -3,6 +3,7 @@ import os
 import zipfile
 from datetime import datetime
 from pathlib import Path
+
 import numpy as np
 # import pymongo
 import requests
@@ -168,9 +169,9 @@ def data_aug() :
 @app.route('/', methods=['GET', 'POST'])
 @cross_origin(origin='*')
 def main() :
-    return render_template('index.html')
+    return render_template('hello.html')
 
 
 # startbackend
-if __name__ == '__main__':
-    app.run()
+if __name__ == '__main__' :
+    app.run(host='127.0.0.1', port='6868', debug=True)
