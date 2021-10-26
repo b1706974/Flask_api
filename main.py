@@ -166,7 +166,7 @@ def data_aug() :
 
 
 ###########################################################################
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 @cross_origin(origin='*')
 def main() :
     return render_template('index.html')
