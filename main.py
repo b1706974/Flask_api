@@ -3,11 +3,10 @@ import os
 import zipfile
 from datetime import datetime
 from pathlib import Path
-
 import numpy as np
 # import pymongo
 import requests
-from flask import Flask, jsonify, flash, url_for, render_template, send_from_directory
+from flask import Flask, jsonify, flash, url_for, render_template, send_from_directory, send_file
 from flask import request
 from flask_cors import CORS, cross_origin
 import base64
@@ -45,30 +44,33 @@ def chuyen_base64_sang_anh(anh_base64) :
     return anh_base64
 
 
-def detect_face():
+def detect_face() :
     count = 0
-    for file in os.listdir('images_face'):
+    for file in os.listdir('images_face') :
         file_name, file_extension = os.path.splitext(file)
-        if file_extension in ['.png', '.jpg']:
+        if file_extension in ['.png', '.jpg'] :
             image = cv2.imread('images_face/' + file)
             (h, w) = image.shape[:2]
             blob = cv2.dnn.blobFromImage(cv2.resize(image, (400, 400)), 1.0, (300, 300), (104.0, 177.0, 123.0))
             model.setInput(blob)
             detections = model.forward()
             # Identify each face
-            for i in range(0, detections.shape[2]):
-                box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+            for i in range(0, detections.shape[2]) :
+                box = detections[0, 0, i, 3 :7] * np.array([w, h, w, h])
                 (startX, startY, endX, endY) = box.astype("int")
                 confidence = detections[0, 0, i, 2]
                 # If confidence > 0.5, save it as a separate file
-                if confidence > 0.5:
+                if confidence > 0.5 :
                     count += 1
-                    frame = image[startY:endY, startX:endX]
-                    cv2.imwrite('faces/' + str(i) + '_' + file, frame)
+                    frame = image[startY :endY, startX :endX]
+                    try:
+                        cv2.imwrite('faces/' + str(i) + '_' + file, frame)
+                    except Exception:
+                        pass
         shutil.make_archive("data_face", 'zip', "./faces/")
 
 
-def aug_data():
+def aug_data() :
     count = 0
     for file in os.listdir('images') :
         file_name, file_extension = os.path.splitext(file)
@@ -95,45 +97,51 @@ def aug_data():
             i += 1
             if i > 20 :
                 break
-    src_path = 'C:/Users/MyPC/Desktop/flask_api/images'
-    trg_path = 'C:/Users/MyPC/Desktop/flask_api/augmented'
+    src_path = '/images'
+    trg_path = '/augmented'
 
     for src_file in Path(src_path).glob('*.jpg*') :
         shutil.move(os.path.join(src_path, src_file), trg_path)
     shutil.make_archive("data", 'zip', "./augmented")
     #####Xoa het anh trong may#####
-    mypath = "C:/Users/MyPC/Desktop/flask_api/augmented"
+    mypath = "./augmented"
     for root, dirs, files in os.walk(mypath) :
         for file in files :
             os.remove(os.path.join(root, file))
 
 
-def delete_file() :
-    mypath = "C:/Users/MyPC/Desktop/flask_api/faces"
+def delete_face(mypath) :
     for root, dirs, files in os.walk(mypath) :
         for file in files :
             os.remove(os.path.join(root, file))
+
+
+@app.route('/favicon.ico')
+def favicon() :
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetypes="/templates/favicon.png")
 
 
 ###########################################################################
 @app.route('/face', methods=['GET', 'POST'])
 @cross_origin(origin='*')
-def get_process():
+def get_process() :
     facebase64 = request.form.get('facebase64')
-    with open('output_file.zip', 'wb') as result:
+    with open('output_file.zip', 'wb') as result :
         result.write(base64.b64decode(facebase64))
     zip_ref = zipfile.ZipFile("output_file.zip", 'r')
     zip_ref.extractall("images_face")
     zip_ref.close()
-
     detect_face()
-    for name in glob.glob("C:/Users/MyPC/Desktop/flask_api/data_face.zip"):  # base64Zip
-        with open(name, "rb") as image_file:
+    for name in glob.glob("data_face.zip") :  # base64Zip
+        with open(name, "rb") as image_file :
             resultt = base64.b64encode(image_file.read()).decode()
     response = jsonify({
-        'message': str(resultt)
+        'message' : str(resultt)
     })
-    delete_file()
+    mypath = './faces'
+    delete_face(mypath)  # cach1
+    delete_face(mypath='./images_face')  # cach2
     return response
 
 
@@ -155,7 +163,7 @@ def data_aug() :
     # )
     aug_data()
     new_data = {}
-    for name in glob.glob("C:/Users/MyPC/Desktop/flask_api/*.zip"):  # base64Zip
+    for name in glob.glob("data.zip") :  # base64Zip
         with open(name, "rb") as image_file :
             result = base64.b64encode(image_file.read()).decode()
     response = jsonify({
@@ -166,12 +174,36 @@ def data_aug() :
 
 
 ###########################################################################
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 @cross_origin(origin='*')
-def main() :
-    return render_template('hello.html')
+def main():
+    return render_template('index.html')
+
+
+app.config["IMAGE_UPLOADS"] = "images"
+
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload() :
+    if request.method == "POST" :
+        if request.files  :
+            image = request.files["images"]
+            image.save(os.path.join(app.config["IMAGE_UPLOADS"], image.filename))
+            print("Image saved")
+            aug_data()
+            delete_face(mypath='./images')
+            zip_ref = zipfile.ZipFile("data.zip", 'r')
+            zip_ref.extractall("images_face")
+            zip_ref.close()
+            detect_face()
+            delete_face(mypath='./faces')
+            delete_face(mypath='./images_face')
+            path = './data_face.zip'
+            return send_file(path, as_attachment=True)
+
+    return render_template('demo.html')
 
 
 # startbackend
 if __name__ == '__main__' :
-    app.run(host='127.0.0.1', port='6868', debug=True)
+    app.run(host='127.0.0.1', port='8000', debug=True)  # host='127.0.0.1', port='6868', debug=True
