@@ -33,7 +33,7 @@ url = 'http://a294-14-240-28-81.ngrok.io/data'
 #   "mongodb+srv://Buudao123:Buudao9699@cluster0.1y49z.mongodb.net/API?retryWrites=true&w=majority")
 # db = client.API
 # image = db.image
-
+#hello old friedn
 
 def chuyen_base64_sang_anh(anh_base64) :
     try :
