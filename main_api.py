@@ -3,7 +3,6 @@ import os
 import zipfile
 from datetime import datetime
 from pathlib import Path
-
 import numpy as np
 # import pymongo
 import requests
@@ -27,8 +26,6 @@ prototxt_path = os.path.join('deploy.prototxt')
 caffemodel_path = os.path.join('res10_300x300_ssd_iter_140000.caffemodel')
 # Read the model
 model = cv2.dnn.readNetFromCaffe(prototxt_path, caffemodel_path)
-url = 'http://a294-14-240-28-81.ngrok.io/data'
-
 
 # client = pymongo.MongoClient(
 #   "mongodb+srv://Buudao123:Buudao9699@cluster0.1y49z.mongodb.net/API?retryWrites=true&w=majority")
