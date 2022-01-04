@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <link rel="shortcut icon" href="https://w7.pngwing.com/pngs/368/176/png-transparent-ethereum-cryptocurrency-blockchain-bitcoin-logo-bitcoin-angle-triangle-logo.png" type="image/png" /">
+    <link rel="shortcut icon" href="https://w7.pngwing.com/pngs/368/176/png-transparent-ethereum-cryptocurrency-blockchain-bitcoin-logo-bitcoin-angle-triangle-logo.png" type="image/png">
     <title>Augmentation</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -21,7 +21,7 @@
         </a>
         <div class="media-body">
           <h5>How to use?</h5>
-          <p>1. Upload your image which one you want to augmented. If it will be used for trainning data, the face in picture should be in centel.</p>
+          <p>1. Upload your image (JPG, PNG only) which one you want to augmented. If it will be used for trainning data, the face in picture should be in centel.</p>
           <p>2. Wait for server response about 10s, the Response will be a Zip file with 20 images(faces was cropped). </p> 
           <p>3. Use it!</p>
         </div>
@@ -36,27 +36,61 @@
       <p> <b>Upload an image here: </b></p>
       <hr>
 
-      <form action="/upload" method="POST" enctype="multipart/form-data">
+      <form action="/upload" method="POST" enctype="multipart/form-data" onsubmit="return validateFile()">
 
         <div class="form-group">
           <label>Select image</label>
           <div class="custom-file">
             <input type="file" class="custom-file-input" name="images" id="image">
-            <label class="custom-file-label" for="images">Select image...</label>
+            <label class="custom-file-label" for="image"> Select image...</label>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary">Upload</button>
+        <button type="submit" class="btn btn-primary" onclick="myFunction()">Upload</button>
       </form>
     </div>
   </div>
 </div>
-  <script>
-    $(".custom-file-input").on("change", function() {
-      var fileName = $(this).val().split("\\").pop();
-    $(this).siblings(".custom-file-label").addClass("selector").html(fileName);
-    });
-  </script>
-      
+<script>
+  $(".custom-file-input").on("change", function() {
+    var fileName = $(this).val().split("\\").pop();
+    $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+  });
+</script>
+<script>
+  function myFunction() {
+    let x = document.getElementById("image").value;
+    try {
+      if(x == "")  throw "empty";
+    }
+    catch(err) {
+      alert("Input was: " + err);
+    }
+  }
+</script>
+<script>
+  function validateFile()
+          {
+              var allowedExtension = ['jpg', 'png'];
+              var fileExtension = document.getElementById('image').value.split('.').pop().toLowerCase();
+              var isValidFile = false;
+
+                  for(var index in allowedExtension) {
+
+                      if(fileExtension === allowedExtension[index]) {
+                          isValidFile = true;
+                          break;
+                      }
+                  }
+
+                  if(!isValidFile) {
+                      alert('Allowed Extensions are : *.' + allowedExtension.join(', *.'));
+                  }
+
+                  return isValidFile;
+          }
+
+</script>
+
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

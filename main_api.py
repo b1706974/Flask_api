@@ -61,7 +61,10 @@ def detect_face():
                 if confidence > 0.5:
                     count += 1
                     frame = image[startY:endY, startX:endX]
-                    cv2.imwrite('faces/' + str(i) + '_' + file, frame)
+                    try:
+                        cv2.imwrite('faces/' + str(i) + '_' + file, frame)
+                    except Exception:
+                        pass
         shutil.make_archive("data_face", 'zip', "./faces/")
 
 

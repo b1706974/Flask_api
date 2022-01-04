@@ -33,7 +33,7 @@ url = 'http://a294-14-240-28-81.ngrok.io/data'
 #   "mongodb+srv://Buudao123:Buudao9699@cluster0.1y49z.mongodb.net/API?retryWrites=true&w=majority")
 # db = client.API
 # image = db.image
-#hello old friedn
+# hello old friedn
 
 def chuyen_base64_sang_anh(anh_base64) :
     try :
@@ -63,11 +63,10 @@ def detect_face() :
                 if confidence > 0.5 :
                     count += 1
                     frame = image[startY :endY, startX :endX]
-                    try:
+                    try :
                         cv2.imwrite('faces/' + str(i) + '_' + file, frame)
-                    except Exception:
+                    except Exception :
                         pass
-        shutil.make_archive("data_face", 'zip', "./faces/")
 
 
 def aug_data() :
@@ -93,7 +92,7 @@ def aug_data() :
         for batch in datagen.flow(x, batch_size=10,
                                   save_to_dir='augmented',
                                   save_prefix='aug',
-                                  save_format='png') :
+                                  save_format='jpg') :
             i += 1
             if i > 20 :
                 break
@@ -123,70 +122,20 @@ def favicon() :
 
 
 ###########################################################################
-@app.route('/face', methods=['GET', 'POST'])
-@cross_origin(origin='*')
-def get_process() :
-    facebase64 = request.form.get('facebase64')
-    with open('output_file.zip', 'wb') as result :
-        result.write(base64.b64decode(facebase64))
-    zip_ref = zipfile.ZipFile("output_file.zip", 'r')
-    zip_ref.extractall("images_face")
-    zip_ref.close()
-    detect_face()
-    for name in glob.glob("data_face.zip") :  # base64Zip
-        with open(name, "rb") as image_file :
-            resultt = base64.b64encode(image_file.read()).decode()
-    response = jsonify({
-        'message' : str(resultt)
-    })
-    mypath = './faces'
-    delete_face(mypath)  # cach1
-    delete_face(mypath='./images_face')  # cach2
-    return response
-
-
-###########################################################################
-@app.route('/data', methods=['GET', 'POST'])
-@cross_origin(origin='*')
-def data_aug() :
-    facebase64 = request.form.get('facebase64')
-    imgdata = base64.b64decode(facebase64)
-    filename = './images/1.jpg'
-    with open(filename, 'wb') as f :
-        f.write(imgdata)
-    # db.image.replace_one(
-    #   {"Name": 'done'},
-    #  {
-    #     "Name": 'done',
-    #    "facebase64": str(facebase64),
-    # }
-    # )
-    aug_data()
-    new_data = {}
-    for name in glob.glob("data.zip") :  # base64Zip
-        with open(name, "rb") as image_file :
-            result = base64.b64encode(image_file.read()).decode()
-    response = jsonify({
-        'message' : str(result),
-    }
-    )
-    return response
-
-
-###########################################################################
 @app.route('/')
 @cross_origin(origin='*')
-def main():
+def main() :
     return render_template('index.html')
 
 
 app.config["IMAGE_UPLOADS"] = "images"
 
 
+# Web server!!!!
 @app.route('/upload', methods=['GET', 'POST'])
 def upload() :
     if request.method == "POST" :
-        if request.files  :
+        if request.files :
             image = request.files["images"]
             image.save(os.path.join(app.config["IMAGE_UPLOADS"], image.filename))
             print("Image saved")
@@ -195,12 +144,18 @@ def upload() :
             zip_ref = zipfile.ZipFile("data.zip", 'r')
             zip_ref.extractall("images_face")
             zip_ref.close()
-            detect_face()
-            delete_face(mypath='./faces')
-            delete_face(mypath='./images_face')
-            path = './data_face.zip'
-            return send_file(path, as_attachment=True)
-
+            try :
+                detect_face()
+                shutil.move("./data.zip", "faces/data.zip")
+                shutil.make_archive("data_face", 'zip', "./faces/")
+                delete_face(mypath='./faces')
+                delete_face(mypath='./images_face')
+                path = './data_face.zip'
+                return send_file(path, as_attachment=True)
+            except Exception :
+                path = './data.zip'
+                return send_file(path, as_attachment=True)
+    # heelo
     return render_template('demo.html')
 
 
